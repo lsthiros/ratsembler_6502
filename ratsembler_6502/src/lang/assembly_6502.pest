@@ -1,0 +1,26 @@
+digit = {'0'..'9'}
+hex_digit = {'a'..'f' | 'A'..'F' | digit}
+indexer = {"X" | "Y" | "A"}
+short_hex = @{hex_digit{2}}
+long_hex = @{long_hex{4}}
+short_literal = {"$"~short_hex}
+long_literal = {"$"~long_hex}
+number = {long_literal | short_literal}
+instruction = { "LDA" }
+letter = {'a'..'z'|'A'..'Z'}
+numeric = {'0'..'9'}
+label = @{(letter | "_")~(letter | numeric | "_")*}
+label_dec = ${label~":"}
+WHITESPACE = _{" " | "\t" | "\n"}
+address = {label | number}
+address_code = {
+    ("#"~address)     |
+    (address)         |
+    ("("~address~")") |
+    (address~","~indexer) |
+    ("("~address~","~indexer~")") |
+    ("("~address~")"~","~indexer) |
+    ("A")
+}
+operation = {instruction~address_code?}
+program = {operation~(WHITESPACE~operation)*}
