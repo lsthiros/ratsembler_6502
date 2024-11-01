@@ -1,16 +1,21 @@
 digit = {'0'..'9'}
 hex_digit = {'a'..'f' | 'A'..'F' | digit}
 indexer = {"X" | "Y" | "A"}
-short_hex = @{hex_digit{2}}
-long_hex = @{long_hex{4}}
+short_hex = {hex_digit{2}}
+long_hex = {hex_digit{4}}
 short_literal = {"$"~short_hex}
 long_literal = {"$"~long_hex}
 number = {long_literal | short_literal}
-instruction = { "LDA" }
+instruction = {
+    "LDA" | "LDX" | "LDY" | "STA" | "STX" | "STY" | "ADC" | "SBC" | "INC" | "INX" | "INY" | "DEC" | "DEX" | "DEY" |
+    "AND" | "ORA" | "EOR" | "JMP" | "BCC" | "BCS" | "BEQ" | "BNE" | "BMI" | "BPL" | "BVS" | "BVC" | "CMP" | "CPX" |
+    "CPY" | "BIT" | "ASL" | "LSR" | "ROL" | "ROR" | "TSX" | "TXS" | "PHA" | "PHP" | "PLA" | "PLP" | "JSR" | "RTS" |
+    "RTI" | "CLC" | "CLD" | "CLI" | "CLV" | "SEC" | "SED" | "SEI" | "NOP" | "BRK"
+}
 letter = {'a'..'z'|'A'..'Z'}
 numeric = {'0'..'9'}
-label = @{(letter | "_")~(letter | numeric | "_")*}
-label_dec = ${label~":"}
+label = {(letter | "_")~(letter | numeric | "_")*}
+label_dec = {label~":"}
 WHITESPACE = _{" " | "\t" | "\n"}
 address = {label | number}
 address_code = {
@@ -23,4 +28,5 @@ address_code = {
     ("A")
 }
 operation = {instruction~address_code?}
-program = {operation~(WHITESPACE~operation)*}
+
+program = {SOI~(instruction~WHITESPACE*)*~EOI}
