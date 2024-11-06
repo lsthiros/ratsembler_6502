@@ -1,10 +1,8 @@
-digit = {'0'..'9'}
-hex_digit = {'a'..'f' | 'A'..'F' | digit}
-indexer = {"X" | "Y" | "A"}
-short_hex = {hex_digit{2}}
-long_hex = {hex_digit{4}}
-short_literal = {"$"~short_hex}
-long_literal = {"$"~long_hex}
+WHITESPACE = _{" " | "\t" | "\n"}
+
+indexer = @{"X" | "Y" | "A"}
+short_literal = @{"$"~ASCII_HEX_DIGIT{2}}
+long_literal = @{"$"~ASCII_HEX_DIGIT{4}}
 number = {long_literal | short_literal}
 instruction = {
     "LDA" | "LDX" | "LDY" | "STA" | "STX" | "STY" | "ADC" | "SBC" | "INC" | "INX" | "INY" | "DEC" | "DEX" | "DEY" |
@@ -12,21 +10,29 @@ instruction = {
     "CPY" | "BIT" | "ASL" | "LSR" | "ROL" | "ROR" | "TSX" | "TXS" | "PHA" | "PHP" | "PLA" | "PLP" | "JSR" | "RTS" |
     "RTI" | "CLC" | "CLD" | "CLI" | "CLV" | "SEC" | "SED" | "SEI" | "NOP" | "BRK"
 }
-letter = {'a'..'z'|'A'..'Z'}
-numeric = {'0'..'9'}
-label = {(letter | "_")~(letter | numeric | "_")*}
-label_dec = {label~":"}
-WHITESPACE = _{" " | "\t" | "\n"}
+label = @{ASCII_ALPHA~(ASCII_ALPHANUMERIC | "_")*}
+label_dec = ${label~":"}
 address = {label | number}
+/*
 address_code = {
-    ("#"~address)     |
-    (address)         |
-    ("("~address~")") |
-    (address~","~indexer) |
+    ("#"~address)                 |
+    (address)                     |
+    ("("~address~")")             |
+    (address~","~indexer)         |
     ("("~address~","~indexer~")") |
     ("("~address~")"~","~indexer) |
-    ("A")
 }
-operation = {instruction~address_code?}
+*/
 
-program = {SOI~(instruction~WHITESPACE*)*~EOI}
+indexed_indirect_addresser = {"("~address~","~"X"~")"}
+indirect_indexed_addresser = {"("~address~")"~","~"Y"}
+inderect_addresser = {"("~address~")"}
+address_code = ${
+    ("#"~address)                |
+    (indexed_indirect_addresser) |
+    (indirect_indexed_addresser) |
+    (inderect_addresser)         |
+    (address~","~("X" | "Y"))    |
+    (address)
+}
+program = {(instruction~(!instruction~address_code)?)*}
