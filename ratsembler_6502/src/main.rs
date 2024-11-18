@@ -6,12 +6,26 @@ use std::fs::File;
 use std::io::{self};
 use std::u32;
 
+#[macro_use]
+extern crate lazy_static;
+
 use lang::parser::Assembler6502Parser;
 use lang::parser::Rule;
 
 use pest::Parser;
+use pest::pratt_parser::PrattParser;
 
 use elf::writer::write_elf_header;
+
+/*
+lazy_static! {
+    static ref ASM_PARSER: PrattParser<Rule> = {
+        use Rule::*;
+        use Assoc::*;
+    }
+}
+    */
+
 fn main() -> io::Result<()> {
     // read_to_string a file thats argument 1 on the command line
     println!("Parsiing file: {}", std::env::args().nth(1).unwrap());
