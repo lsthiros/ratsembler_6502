@@ -17,15 +17,6 @@ use pest::pratt_parser::PrattParser;
 
 use elf::writer::write_elf_header;
 
-/*
-lazy_static! {
-    static ref ASM_PARSER: PrattParser<Rule> = {
-        use Rule::*;
-        use Assoc::*;
-    }
-}
-    */
-
 fn main() -> io::Result<()> {
     // read_to_string a file thats argument 1 on the command line
     println!("Parsiing file: {}", std::env::args().nth(1).unwrap());

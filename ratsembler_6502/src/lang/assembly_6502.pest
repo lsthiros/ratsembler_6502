@@ -9,7 +9,7 @@ instruction = {
     ^"CPY" | ^"BIT" | ^"ASL" | ^"LSR" | ^"ROL" | ^"ROR" | ^"TSX" | ^"TXS" | ^"PHA" | ^"PHP" | ^"PLA" | ^"PLP" | ^"JSR" | ^"RTS" |
     ^"RTI" | ^"CLC" | ^"CLD" | ^"CLI" | ^"CLV" | ^"SEC" | ^"SED" | ^"SEI" | ^"NOP" | ^"BRK"
 }
-label = @{ASCII_ALPHA~(ASCII_ALPHANUMERIC | "_")*}
+label = @{!instruction~(ASCII_ALPHA~(ASCII_ALPHANUMERIC | "_")*)}
 label_dec = ${label~":"}
 address = {label | number}
 
@@ -25,4 +25,8 @@ address_code = ${
     (address)
 }
 
-program = {SOI~(label_dec*~(instruction~(!instruction~!label_dec~address_code)?))*~EOI}
+operation = {instruction~(!label_dec~address_code)?}
+labeled_operation = {label_dec+~operation}
+expression = {labeled_operation | operation}
+
+program = {SOI~(expression)*~EOI}
