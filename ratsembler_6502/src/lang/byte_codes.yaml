@@ -1,0 +1,252 @@
+---
+LDA:
+  ABSOLUTE: '0xAD'
+  ABS_X: '0xBD'
+  ABS_Y: '0xB9'
+  IMMEDIATE: '0xA9'
+  ZERO_PAGE: '0xA5'
+  INDEX_IND: '0xA1'
+  ZP_X: '0xB5'
+  IND_INDEX: '0xB1'
+
+LDX:
+  ABSOLUTE: '0xAE'
+  ABS_Y: '0xBE'
+  IMMEDIATE: '0xA2'
+  ZERO_PAGE: '0xA6'
+  ZP_Y: '0xB6'
+
+LDY:
+  ABSOLUTE: '0xAC'
+  ABS_X: '0xBC'
+  IMMEDIATE: '0xA0'
+  ZERO_PAGE: '0xA4'
+  ZP_X: '0xB4'
+
+STA:
+  ABSOLUTE: '0x8D'
+  ABS_X: '0x9D'
+  ABS_Y: '0x99'
+  ZERO_PAGE: '0x85'
+  INDEX_IND: '0x81'
+  ZP_X: '0x95'
+  IND_INDEX: '0x91'
+
+STX:
+  ABSOLUTE: '0x8E'
+  ZERO_PAGE: '0x86'
+  ZP_Y: '0x96'
+
+STY:
+  ABSOLUTE: '0x8C'
+  ZERO_PAGE: '0x84'
+  ZP_X: '0x94'
+
+ADC:
+  ABSOLUTE: '0x6D'
+  ABS_X: '0x7D'
+  ABS_Y: '0x79'
+  IMMEDIATE: '0x69'
+  ZERO_PAGE: '0x65'
+  INDEX_IND: '0x61'
+  ZP_X: '0x75'
+  IND_INDEX: '0x71'
+
+SBC:
+  ABSOLUTE: '0xED'
+  ABS_X: '0xFD'
+  ABS_Y: '0xF9'
+  IMMEDIATE: '0xE9'
+  ZERO_PAGE: '0xE5'
+  INDEX_IND: '0xE1'
+  ZP_X: '0xF5'
+  IND_INDEX: '0xF1'
+
+INC:
+  ABSOLUTE: '0xEE'
+  ABS_X: '0xFE'
+  ZERO_PAGE: '0xE6'
+  ZP_X: '0xF6'
+
+INX:
+  IMPLIED: '0xE8'
+
+INY:
+  IMPLIED: '0xC8'
+
+DEC:
+  ABSOLUTE: '0xCE'
+  ABS_X: '0xDE'
+  ZERO_PAGE: '0xC6'
+  ZP_X: '0xD6'
+
+DEX:
+  IMPLIED: '0xCA'
+
+DEY:
+  IMPLIED: '0x88'
+
+AND:
+  ABSOLUTE: '0x2D'
+  ABS_X: '0x3D'
+  ABS_Y: '0x39'
+  IMMEDIATE: '0x29'
+  ZERO_PAGE: '0x25'
+  INDEX_IND: '0x21'
+  ZP_X: '0x35'
+  IND_INDEX: '0x31'
+
+ORA:
+  ABSOLUTE: '0x0D'
+  ABS_X: '0x1D'
+  ABS_Y: '0x19'
+  IMMEDIATE: '0x09'
+  ZERO_PAGE: '0x05'
+  INDEX_IND: '0x01'
+  ZP_X: '0x15'
+  IND_INDEX: '0x11'
+
+EOR:
+  ABSOLUTE: '0x4D'
+  ABS_X: '0x5D'
+  ABS_Y: '0x59'
+  IMMEDIATE: '0x49'
+  ZERO_PAGE: '0x45'
+  INDEX_IND: '0x41'
+  ZP_X: '0x55'
+  IND_INDEX: '0x51'
+
+JMP:
+  ABSOLUTE: '0x4C'
+  ABSOLUTE_INDIRECT: '0x6C'
+
+BCC:
+  RELATIVE: '0x90'
+
+BCS:
+  RELATIVE: '0xB0'
+
+BEQ:
+  RELATIVE: '0xF0'
+
+BNE:
+  RELATIVE: '0xD0'
+
+BMI:
+  RELATIVE: '0x30'
+
+BPL:
+  RELATIVE: '0x10'
+
+BVS:
+  RELATIVE: '0x70'
+
+BVC:
+  RELATIVE: '0x50'
+
+CMP:
+  ABSOLUTE: '0xCD'
+  ABS_X: '0xDD'
+  ABS_Y: '0xD9'
+  IMMEDIATE: '0xC9'
+  ZERO_PAGE: '0xC5'
+  INDEX_IND: '0xC1'
+  ZP_X: '0xD5'
+  IND_INDEX: '0xD1'
+
+CPX:
+  ABSOLUTE: '0xEC'
+  IMMEDIATE: '0xE0'
+  ZERO_PAGE: '0xE4'
+
+CPY:
+  ABSOLUTE: '0xCC'
+  IMMEDIATE: '0xC0'
+  ZERO_PAGE: '0xC4'
+
+BIT:
+  ABSOLUTE: '0x2C'
+  IMMEDIATE: '0x89'
+  ZERO_PAGE: '0x24'
+
+ASL:
+  ABSOLUTE: '0x0E'
+  ABS_X: '0x1E'
+  ACCUMULATOR: '0x0A'
+  ZERO_PAGE: '0x06'
+  ZP_X: '0x16'
+
+LSR:
+  ABSOLUTE: '0x4E'
+  ABS_X: '0x5E'
+  ACCUMULATOR: '0x4A'
+  ZERO_PAGE: '0x46'
+  ZP_X: '0x56'
+
+ROL:
+  ABSOLUTE: '0x2E'
+  ABS_X: '0x3E'
+  ACCUMULATOR: '0x2A'
+  ZERO_PAGE: '0x26'
+  ZP_X: '0x36'
+
+ROR:
+  ABSOLUTE: '0x6E'
+  ABS_X: '0x7E'
+  ACCUMULATOR: '0x6A'
+  ZERO_PAGE: '0x66'
+  ZP_X: '0x76'
+
+TSX:
+  IMPLIED: '0xBA'
+
+TXS:
+  IMPLIED: '0x9A'
+
+PHA:
+  IMPLIED: '0x48'
+
+PHP:
+  IMPLIED: '0x08'
+
+PLA:
+  IMPLIED: '0x68'
+
+PLP:
+  IMPLIED: '0x28'
+
+JSR:
+  ABSOLUTE: '0x20'
+
+RTS:
+  IMPLIED: '0x60'
+
+RTI:
+  IMPLIED: '0x40'
+
+CLC:
+  IMPLIED: '0x18'
+
+CLD:
+  IMPLIED: '0xD8'
+
+CLI:
+  IMPLIED: '0x58'
+
+CLV:
+  IMPLIED: '0xB8'
+
+SEC:
+  IMPLIED: '0x38'
+
+SED:
+  IMPLIED: '0xF8'
+
+SEI:
+  IMPLIED: '0x78'
+
+NOP:
+  IMPLIED: '0xEA'
+
+BRK:
+  IMPLIED: '0x00'
