@@ -53,15 +53,19 @@ pub enum InstructionCode {
     NOP,
     BRK,
 }
-pub enum AddressMode {
-    ACCUMULATOR,
+
+pub enum AddressModeIndexer {
     ABSOLUTE,
     ABS_X,
     ABS_Y,
     IMMEDIATE,
-    REL_ZP,
+    ZERO_PAGE,
     INDEX_IND,
     ZP_X,
-    ZP_Y,
     IND_INDEX,
+    ZP_Y,
+    IMPLIED,
+    RELATIVE,
+    ACCUMULATOR,
+    ABSOLUTE_INDIRECT,
 }
