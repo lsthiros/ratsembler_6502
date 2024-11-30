@@ -16,7 +16,7 @@ address = {label | number}
 
 indexed_indirect_addresser = ${"("~address~","~"X"~")"}
 indirect_indexed_addresser = ${"("~address~")"~","~"Y"}
-inderect_addresser = ${"("~address~")"}
+indirect_addresser = ${"("~address~")"}
 direct_addresser = ${"#"~address}
 indexed_addresser = ${address~","~("X" | "Y")}
 
@@ -24,7 +24,7 @@ address_code = _{
     direct_addresser           |
     indexed_indirect_addresser |
     indirect_indexed_addresser |
-    inderect_addresser         |
+    indirect_addresser         |
     indexed_addresser          |
     address
 }

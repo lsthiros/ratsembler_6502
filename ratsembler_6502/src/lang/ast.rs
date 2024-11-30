@@ -12,12 +12,12 @@ use std::vec::Vec;
 
 pub enum ShortOperand<'a> {
     Numeric(u8),
-    Label(&'a str),
+    Label(&'a String),
 }
 
 pub enum LongOperand<'a> {
     Numeric(u16),
-    Label(&'a str),
+    Label(&'a String),
 }
 
 pub enum AddressValue<'a> {
@@ -39,14 +39,13 @@ pub enum AddressValue<'a> {
     IndirectIndexed(ShortOperand<'a>), // (ZP), Y
 }
 pub struct Expression<'a> {
-    labels: Vec<&'a str>,
     operator: InstructionCode,
     operand: AddressValue<'a>,
 }
 
 pub struct Program<'program> {
     expressions: Vec<Expression<'program>>,
-    labels: Vec<Box<str>>,
+    labels: Vec<String>,
 }
 
 impl AddressValue<'_> {
@@ -70,7 +69,7 @@ impl AddressValue<'_> {
     }
 }
 
-fn parse_expression(expression: Pair<super::parser::Rule>) -> Expression {
+fn parse_expression(expression: Pair<super::parser::Rule>) -> (Vec<String>, Expression){
     assert_eq!(expression.as_rule(), super::parser::Rule::expression);
 
     let mut labels: Vec<String> = Vec::new();
@@ -88,7 +87,28 @@ fn parse_expression(expression: Pair<super::parser::Rule>) -> Expression {
         *INSTRUCTION_STR_MAP.get(operation_str.as_str()).unwrap()
     };
 
-    unimplemented!();
+    let operand: AddressValue = {
+        if let Some(address_value) = inner_pairs.next() {
+            match address_value.as_rule() {
+                Rule::indirect_addresser => {
+                    unimplemented!();
+                }
+                _ =>
+            {
+                unreachable!()
+            }}
+        }
+        else {
+            AddressValue::Implied
+        }
+    };
+
+    (labels,
+    Expression {
+        operator: operation,
+        operand: operand,
+    })
+
 }
 
 impl<'program> Program<'program> {
