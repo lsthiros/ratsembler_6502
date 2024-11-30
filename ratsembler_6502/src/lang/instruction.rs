@@ -157,7 +157,11 @@ pub static INSTRUCTION_SET: &[(InstructionCode, AddressModeIndexer, u8)] = &[
     (InstructionCode::EOR, AddressModeIndexer::ZP_X, 0x55),
     (InstructionCode::EOR, AddressModeIndexer::IND_INDEX, 0x51),
     (InstructionCode::JMP, AddressModeIndexer::ABSOLUTE, 0x4C),
-    (InstructionCode::JMP, AddressModeIndexer::ABSOLUTE_INDIRECT, 0x6C),
+    (
+        InstructionCode::JMP,
+        AddressModeIndexer::ABSOLUTE_INDIRECT,
+        0x6C,
+    ),
     (InstructionCode::BCC, AddressModeIndexer::RELATIVE, 0x90),
     (InstructionCode::BCS, AddressModeIndexer::RELATIVE, 0xB0),
     (InstructionCode::BEQ, AddressModeIndexer::RELATIVE, 0xF0),

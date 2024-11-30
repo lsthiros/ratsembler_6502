@@ -1,54 +1,53 @@
-use super::instruction::InstructionCode;
 use super::instruction::AddressModeIndexer;
+use super::instruction::InstructionCode;
 use super::instruction::INSTRUCTION_STR_MAP;
 
 use super::parser::Rule;
 
-use pest::iterators::Pairs;
 use pest::iterators::Pair;
+use pest::iterators::Pairs;
 
 use std::vec::Vec;
 
-
-pub enum ShortOperand<'a> {
+pub enum ShortOperand {
     Numeric(u8),
-    Label(&'a String),
+    Label(String),
 }
 
-pub enum LongOperand<'a> {
+pub enum LongOperand {
     Numeric(u16),
-    Label(&'a String),
+    Label(String),
 }
 
-pub enum AddressValue<'a> {
+pub enum AddressValue {
     Accumulator,
     Implied,
-    Immediate(ShortOperand<'a>),
-    Absolute(LongOperand<'a>),
-    ZeroPage(ShortOperand<'a>),
-    Relative(ShortOperand<'a>),
+    Immediate(ShortOperand),
+    Absolute(LongOperand),
+    ZeroPage(ShortOperand),
+    Relative(ShortOperand),
     /* Absulte Indirect: refers to a little
      * endian two byte value stored at the
      * specified address. Only used by JMP */
-    AbsoluteIndirect(LongOperand<'a>),
-    AbsoluteX(LongOperand<'a>),
-    AbsoluteY(LongOperand<'a>),
-    ZeroPageX(ShortOperand<'a>),
-    ZeroPageY(ShortOperand<'a>),
-    IndexedIndirect(ShortOperand<'a>), // (ZP, X)
-    IndirectIndexed(ShortOperand<'a>), // (ZP), Y
+    AbsoluteIndirect(LongOperand),
+    AbsoluteX(LongOperand),
+    AbsoluteY(LongOperand),
+    ZeroPageX(ShortOperand),
+    ZeroPageY(ShortOperand),
+    IndexedIndirect(ShortOperand), // (ZP, X)
+    IndirectIndexed(ShortOperand), // (ZP), Y
 }
-pub struct Expression<'a> {
+pub struct Expression {
     operator: InstructionCode,
-    operand: AddressValue<'a>,
+    operand: AddressValue,
 }
 
-pub struct Program<'program> {
-    expressions: Vec<Expression<'program>>,
+pub struct Program {
+    expressions: Vec<Expression>,
     labels: Vec<String>,
 }
 
-impl AddressValue<'_> {
+impl AddressValue {
     pub fn to_indexer(self) -> AddressModeIndexer {
         match self {
             AddressValue::Accumulator => AddressModeIndexer::ACCUMULATOR,
@@ -69,7 +68,18 @@ impl AddressValue<'_> {
     }
 }
 
-fn parse_expression(expression: Pair<super::parser::Rule>) -> (Vec<String>, Expression){
+impl LongOperand {
+    pub fn from_indirect_addresser(addresser: Pair<super::parser::Rule>) -> LongOperand {
+        let inner_address: String = addresser.into_inner().next().unwrap().as_str().to_string();
+        if let Ok(value) = u16::from_str_radix(&inner_address.as_str()[1..], 16) {
+            LongOperand::Numeric(value)
+        } else {
+            LongOperand::Label(inner_address)
+        }
+    }
+}
+
+fn parse_expression(expression: Pair<super::parser::Rule>) -> (Vec<String>, Expression) {
     assert_eq!(expression.as_rule(), super::parser::Rule::expression);
 
     let mut labels: Vec<String> = Vec::new();
@@ -91,28 +101,38 @@ fn parse_expression(expression: Pair<super::parser::Rule>) -> (Vec<String>, Expr
         if let Some(address_value) = inner_pairs.next() {
             match address_value.as_rule() {
                 Rule::indirect_addresser => {
-                    unimplemented!();
+                    AddressValue::AbsoluteIndirect(LongOperand::from_indirect_addresser(address_value))
                 }
-                _ =>
-            {
-                unreachable!()
-            }}
-        }
-        else {
-            AddressValue::Implied
+                _ => {
+                    unreachable!()
+                }
+            }
+        } else {
+            match operation {
+                InstructionCode::ASL |
+                InstructionCode::ROL |
+                InstructionCode::LSR |
+                InstructionCode::ROR => {
+                    AddressValue::Accumulator
+                }
+                _ => {
+                    AddressValue::Implied
+                }
+            }
         }
     };
 
-    (labels,
-    Expression {
-        operator: operation,
-        operand: operand,
-    })
-
+    (
+        labels,
+        Expression {
+            operator: operation,
+            operand: operand,
+        },
+    )
 }
 
-impl<'program> Program<'program> {
-    fn from_pairs(pairs: Pairs<'program, super::parser::Rule>) -> Program<'program> {
+impl Program {
+    fn from_pairs(pairs: Pairs<Rule>) -> Program {
         unimplemented!();
     }
 }
