@@ -9,24 +9,28 @@ instruction = {
     ^"CPY" | ^"BIT" | ^"ASL" | ^"LSR" | ^"ROL" | ^"ROR" | ^"TSX" | ^"TXS" | ^"PHA" | ^"PHP" | ^"PLA" | ^"PLP" | ^"JSR" | ^"RTS" |
     ^"RTI" | ^"CLC" | ^"CLD" | ^"CLI" | ^"CLV" | ^"SEC" | ^"SED" | ^"SEI" | ^"NOP" | ^"BRK"
 }
+
 label = @{!instruction~(ASCII_ALPHA~(ASCII_ALPHANUMERIC | "_")*)}
 label_dec = ${label~":"}
 address = {label | number}
 
-indexed_indirect_addresser = {"("~address~","~"X"~")"}
-indirect_indexed_addresser = {"("~address~")"~","~"Y"}
-inderect_addresser = {"("~address~")"}
-address_code = ${
-    ("#"~address)                |
-    (indexed_indirect_addresser) |
-    (indirect_indexed_addresser) |
-    (inderect_addresser)         |
-    (address~","~("X" | "Y"))    |
-    (address)
+indexed_indirect_addresser = ${"("~address~","~"X"~")"}
+indirect_indexed_addresser = ${"("~address~")"~","~"Y"}
+inderect_addresser = ${"("~address~")"}
+direct_addresser = ${"#"~address}
+indexed_addresser = ${address~","~("X" | "Y")}
+
+address_code = _{
+    direct_addresser           |
+    indexed_indirect_addresser |
+    indirect_indexed_addresser |
+    inderect_addresser         |
+    indexed_addresser          |
+    address
 }
 
-operation = {instruction~(!label_dec~address_code)?}
-labeled_operation = {label_dec+~operation}
-expression = {labeled_operation | operation}
+operation = _{instruction~(!label_dec~address_code)?}
+labeled_operation = _{label_dec+~operation}
+expression = {operation | labeled_operation}
 
 program = {SOI~(expression)*~EOI}

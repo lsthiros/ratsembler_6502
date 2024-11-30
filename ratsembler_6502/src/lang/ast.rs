@@ -1,8 +1,14 @@
 use super::instruction::InstructionCode;
 use super::instruction::AddressModeIndexer;
-use std::vec::Vec;
+use super::instruction::INSTRUCTION_STR_MAP;
+
+use super::parser::Rule;
 
 use pest::iterators::Pairs;
+use pest::iterators::Pair;
+
+use std::vec::Vec;
+
 
 pub enum ShortOperand<'a> {
     Numeric(u8),
@@ -62,6 +68,27 @@ impl AddressValue<'_> {
             AddressValue::IndirectIndexed(_) => AddressModeIndexer::IND_INDEX,
         }
     }
+}
+
+fn parse_expression(expression: Pair<super::parser::Rule>) -> Expression {
+    assert_eq!(expression.as_rule(), super::parser::Rule::expression);
+
+    let mut labels: Vec<String> = Vec::new();
+    // We're going to assume that we actually have an Expression here.
+    // Going by the PEG we made, there should be zero or more labels,
+    // one operator, and, at most, one operand.
+
+    let mut inner_pairs = expression.into_inner();
+    while inner_pairs.peek().unwrap().as_rule() == super::parser::Rule::label_dec {
+        labels.push(inner_pairs.next().unwrap().as_str().into());
+    }
+
+    let operation: InstructionCode = {
+        let operation_str = inner_pairs.next().unwrap().as_str().to_uppercase();
+        *INSTRUCTION_STR_MAP.get(operation_str.as_str()).unwrap()
+    };
+
+    unimplemented!();
 }
 
 impl<'program> Program<'program> {
