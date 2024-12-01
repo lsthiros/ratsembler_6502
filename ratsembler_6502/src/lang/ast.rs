@@ -160,6 +160,59 @@ fn parse_expression(expression: Pair<super::parser::Rule>) -> (Vec<String>, Expr
                     ))
                 }
                 Rule::indexed_addresser => AddressValue::from_indexed_addresser(address_value),
+                Rule::indexed_indirect_addresser => {
+                    let mut inner_pairs = address_value.into_inner();
+                    let _ = inner_pairs.next().unwrap(); // Skip the opening parenthesis
+                    let address: Pair<Rule> = inner_pairs.next().unwrap();
+                    assert_eq!(address.as_rule(), Rule::short_literal);
+                    AddressValue::IndexedIndirect(ShortOperand::Numeric(
+                        u8::from_str_radix(&address.as_str()[1..], 16).unwrap(),
+                    ))
+                }
+                Rule::indirect_indexed_addresser => {
+                    let mut inner_pairs: Pairs<Rule> = address_value.into_inner();
+                    let _ = inner_pairs.next().unwrap(); // Skip the opening parenthesis
+                    let address: Pair<Rule> = inner_pairs.next().unwrap();
+                    assert_eq!(address.as_rule(), Rule::short_literal);
+                    AddressValue::IndirectIndexed(ShortOperand::Numeric(
+                        u8::from_str_radix(&address.as_str()[1..], 16).unwrap(),
+                    ))
+                }
+                Rule::short_literal => {
+                    match operation {
+                        InstructionCode::BCC
+                        | InstructionCode::BCS
+                        | InstructionCode::BEQ
+                        | InstructionCode::BMI
+                        | InstructionCode::BNE
+                        | InstructionCode::BPL
+                        | InstructionCode::BVC
+                        | InstructionCode::BVS => AddressValue::Relative(ShortOperand::Numeric(
+                            u8::from_str_radix(&address_value.as_str()[1..], 16).unwrap(),
+                        )),
+                        _ => AddressValue::ZeroPage(ShortOperand::Numeric(
+                            u8::from_str_radix(&address_value.as_str()[1..], 16).unwrap(),
+                        )),
+                    }
+                },
+                Rule::long_literal => AddressValue::Absolute(LongOperand::Numeric(
+                    u16::from_str_radix(&address_value.as_str()[1..], 16).unwrap(),
+                )),
+                Rule::label => {
+                    match operation {
+                        InstructionCode::BCC
+                        | InstructionCode::BCS
+                        | InstructionCode::BEQ
+                        | InstructionCode::BMI
+                        | InstructionCode::BNE
+                        | InstructionCode::BPL
+                        | InstructionCode::BVC
+                        | InstructionCode::BVS => AddressValue::Relative(ShortOperand::Label(
+                            address_value.as_str().into(),
+                        )),
+                        _ => AddressValue::Absolute(LongOperand::Label(address_value.as_str().into())),
+                    }
+                },
                 _ => {
                     unreachable!()
                 }
