@@ -40,12 +40,14 @@ pub enum AddressValue {
     IndexedIndirect(ShortOperand), // (ZP, X)
     IndirectIndexed(ShortOperand), // (ZP), Y
 }
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+
+#[derive(Debug)]
 pub struct Expression {
     operator: InstructionCode,
     operand: AddressValue,
 }
 
+#[derive(Debug)]
 pub struct Program {
     expressions: Vec<Expression>,
     labels: Vec<String>,
@@ -130,6 +132,7 @@ impl LongOperand {
 
 fn parse_expression(expression: Pair<super::parser::Rule>) -> (Vec<String>, Expression) {
     assert_eq!(expression.as_rule(), super::parser::Rule::expression);
+    println!("parsing expression {:?}", expression);
 
     let mut labels: Vec<String> = Vec::new();
     // We're going to assume that we actually have an Expression here.
@@ -138,7 +141,9 @@ fn parse_expression(expression: Pair<super::parser::Rule>) -> (Vec<String>, Expr
 
     let mut inner_pairs = expression.into_inner();
     while inner_pairs.peek().unwrap().as_rule() == super::parser::Rule::label_dec {
-        labels.push(inner_pairs.next().unwrap().as_str().into());
+        let mut label = inner_pairs.next().unwrap().as_str().to_string();
+        label.pop();
+        labels.push(label);
     }
 
     let operation: InstructionCode = {
@@ -154,7 +159,8 @@ fn parse_expression(expression: Pair<super::parser::Rule>) -> (Vec<String>, Expr
                 ),
                 Rule::immediate_addresser => {
                     let mut inner_pairs = address_value.into_inner();
-                    let _ = inner_pairs.next().unwrap(); // Skip the hash
+                    // print the tokens that come through here
+                    println!("{:?}", inner_pairs);
                     AddressValue::Immediate(ShortOperand::Numeric(
                         u8::from_str_radix(&inner_pairs.next().unwrap().as_str()[1..], 16).unwrap(),
                     ))
@@ -162,7 +168,6 @@ fn parse_expression(expression: Pair<super::parser::Rule>) -> (Vec<String>, Expr
                 Rule::indexed_addresser => AddressValue::from_indexed_addresser(address_value),
                 Rule::indexed_indirect_addresser => {
                     let mut inner_pairs = address_value.into_inner();
-                    let _ = inner_pairs.next().unwrap(); // Skip the opening parenthesis
                     let address: Pair<Rule> = inner_pairs.next().unwrap();
                     assert_eq!(address.as_rule(), Rule::short_literal);
                     AddressValue::IndexedIndirect(ShortOperand::Numeric(
@@ -171,7 +176,6 @@ fn parse_expression(expression: Pair<super::parser::Rule>) -> (Vec<String>, Expr
                 }
                 Rule::indirect_indexed_addresser => {
                     let mut inner_pairs: Pairs<Rule> = address_value.into_inner();
-                    let _ = inner_pairs.next().unwrap(); // Skip the opening parenthesis
                     let address: Pair<Rule> = inner_pairs.next().unwrap();
                     assert_eq!(address.as_rule(), Rule::short_literal);
                     AddressValue::IndirectIndexed(ShortOperand::Numeric(
@@ -234,7 +238,29 @@ fn parse_expression(expression: Pair<super::parser::Rule>) -> (Vec<String>, Expr
 }
 
 impl Program {
-    fn from_pairs(pairs: Pairs<Rule>) -> Program {
-        unimplemented!();
+    pub fn from_pairs(pairs: Pairs<Rule>) -> Program {
+        let mut expressions: Vec<Expression> = Vec::new();
+        let mut labels: Vec<String> = Vec::new();
+
+        for pair in pairs {
+            match pair.as_rule() {
+                Rule::expression => {
+                    let (new_labels, new_expression) = parse_expression(pair);
+                    labels.extend(new_labels);
+                    expressions.push(new_expression);
+                }
+                Rule::EOI => {
+                    break;
+                }
+                _ => {
+                    unreachable!("Got unexpected rule: {:?}", pair.as_rule());
+                }
+            }
+        }
+
+        Program {
+            expressions: expressions,
+            labels: labels,
+        }
     }
 }

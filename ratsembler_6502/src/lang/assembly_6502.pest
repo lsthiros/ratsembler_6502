@@ -18,15 +18,17 @@ indexed_indirect_addresser = ${"("~short_literal~","~"X"~")"}
 indirect_indexed_addresser = ${"("~short_literal~")"~","~"Y"}
 indirect_addresser = ${"("~(label | long_literal)~")"}
 immediate_addresser = ${"#"~(short_literal)}
-indexed_addresser = ${address~(",X" | ",Y")}
+x_indexed_addresser = ${",X"}
+y_indexed_addresser = ${",Y"}
+indexed_addresser = ${address~(x_indexed_addresser | y_indexed_addresser)}
 
 address_code = _{
-    immediate_addresser        | // done
-    indexed_indirect_addresser | // done
-    indirect_indexed_addresser | // done
-    indirect_addresser         | // done
-    indexed_addresser          | // done
-    address                      // done
+    immediate_addresser        |
+    indexed_indirect_addresser |
+    indirect_indexed_addresser |
+    indirect_addresser         |
+    indexed_addresser          |
+    address
 }
 
 operation = _{instruction~(!label_dec~address_code)?}
