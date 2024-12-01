@@ -9,16 +9,19 @@ use pest::iterators::Pairs;
 
 use std::vec::Vec;
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ShortOperand {
     Numeric(u8),
     Label(String),
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum LongOperand {
     Numeric(u16),
     Label(String),
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum AddressValue {
     Accumulator,
     Implied,
@@ -37,6 +40,7 @@ pub enum AddressValue {
     IndexedIndirect(ShortOperand), // (ZP, X)
     IndirectIndexed(ShortOperand), // (ZP), Y
 }
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Expression {
     operator: InstructionCode,
     operand: AddressValue,
@@ -66,15 +70,60 @@ impl AddressValue {
             AddressValue::IndirectIndexed(_) => AddressModeIndexer::IND_INDEX,
         }
     }
+
+    pub fn from_indexed_addresser(addresser: Pair<Rule>) -> AddressValue {
+        let mut inner_pairs = addresser.into_inner();
+        let address: Pair<Rule> = inner_pairs.next().unwrap();
+        match address.as_rule() {
+            Rule::short_literal => match inner_pairs.next().unwrap().as_str() {
+                ",X" => AddressValue::ZeroPageX(ShortOperand::Numeric(
+                    u8::from_str_radix(&address.as_str()[1..], 16).unwrap(),
+                )),
+                ",Y" => AddressValue::ZeroPageY(ShortOperand::Numeric(
+                    u8::from_str_radix(&address.as_str()[1..], 16).unwrap(),
+                )),
+                _ => {
+                    unreachable!()
+                }
+            },
+            Rule::label => match inner_pairs.next().unwrap().as_str() {
+                ",X" => AddressValue::ZeroPageX(ShortOperand::Label(address.as_str().into())),
+                ",Y" => AddressValue::ZeroPageY(ShortOperand::Label(address.as_str().into())),
+                _ => {
+                    unreachable!()
+                }
+            },
+            Rule::long_literal => match inner_pairs.next().unwrap().as_str() {
+                ",X" => AddressValue::AbsoluteX(LongOperand::Numeric(
+                    u16::from_str_radix(&address.as_str()[1..], 16).unwrap(),
+                )),
+                ",Y" => AddressValue::AbsoluteY(LongOperand::Numeric(
+                    u16::from_str_radix(&address.as_str()[1..], 16).unwrap(),
+                )),
+                _ => {
+                    unreachable!()
+                }
+            },
+            _ => {
+                unreachable!()
+            }
+        }
+    }
 }
 
 impl LongOperand {
     pub fn from_indirect_addresser(addresser: Pair<super::parser::Rule>) -> LongOperand {
-        let inner_address: String = addresser.into_inner().next().unwrap().as_str().to_string();
-        if let Ok(value) = u16::from_str_radix(&inner_address.as_str()[1..], 16) {
-            LongOperand::Numeric(value)
-        } else {
-            LongOperand::Label(inner_address)
+        let mut inner_pairs = addresser.into_inner();
+        let _ = inner_pairs.next().unwrap(); // Skip the opening parenthesis
+        let address: Pair<Rule> = inner_pairs.next().unwrap();
+        match address.as_rule() {
+            Rule::label => LongOperand::Label(address.as_str().into()),
+            Rule::long_literal => {
+                LongOperand::Numeric(u16::from_str_radix(&address.as_str()[1..], 16).unwrap())
+            }
+            _ => {
+                unreachable!()
+            }
         }
     }
 }
@@ -100,24 +149,28 @@ fn parse_expression(expression: Pair<super::parser::Rule>) -> (Vec<String>, Expr
     let operand: AddressValue = {
         if let Some(address_value) = inner_pairs.next() {
             match address_value.as_rule() {
-                Rule::indirect_addresser => {
-                    AddressValue::AbsoluteIndirect(LongOperand::from_indirect_addresser(address_value))
+                Rule::indirect_addresser => AddressValue::AbsoluteIndirect(
+                    LongOperand::from_indirect_addresser(address_value),
+                ),
+                Rule::immediate_addresser => {
+                    let mut inner_pairs = address_value.into_inner();
+                    let _ = inner_pairs.next().unwrap(); // Skip the hash
+                    AddressValue::Immediate(ShortOperand::Numeric(
+                        u8::from_str_radix(&inner_pairs.next().unwrap().as_str()[1..], 16).unwrap(),
+                    ))
                 }
+                Rule::indexed_addresser => AddressValue::from_indexed_addresser(address_value),
                 _ => {
                     unreachable!()
                 }
             }
         } else {
             match operation {
-                InstructionCode::ASL |
-                InstructionCode::ROL |
-                InstructionCode::LSR |
-                InstructionCode::ROR => {
-                    AddressValue::Accumulator
-                }
-                _ => {
-                    AddressValue::Implied
-                }
+                InstructionCode::ASL
+                | InstructionCode::ROL
+                | InstructionCode::LSR
+                | InstructionCode::ROR => AddressValue::Accumulator,
+                _ => AddressValue::Implied,
             }
         }
     };

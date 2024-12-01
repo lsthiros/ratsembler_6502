@@ -1,8 +1,8 @@
 WHITESPACE = _{" " | "\t" | "\n"}
 
-short_literal = @{"$"~ASCII_HEX_DIGIT{2}}
-long_literal = @{"$"~ASCII_HEX_DIGIT{4}}
-number = {long_literal | short_literal}
+short_literal = ${"$"~ASCII_HEX_DIGIT{2}}
+long_literal = ${"$"~ASCII_HEX_DIGIT{4}}
+number = _{long_literal | short_literal}
 instruction = {
     ^"LDA" | ^"LDX" | ^"LDY" | ^"STA" | ^"STX" | ^"STY" | ^"ADC" | ^"SBC" | ^"INC" | ^"INX" | ^"INY" | ^"DEC" | ^"DEX" | ^"DEY" |
     ^"AND" | ^"ORA" | ^"EOR" | ^"JMP" | ^"BCC" | ^"BCS" | ^"BEQ" | ^"BNE" | ^"BMI" | ^"BPL" | ^"BVS" | ^"BVC" | ^"CMP" | ^"CPX" |
@@ -12,20 +12,20 @@ instruction = {
 
 label = @{!instruction~(ASCII_ALPHA~(ASCII_ALPHANUMERIC | "_")*)}
 label_dec = ${label~":"}
-address = {label | number}
+address = _{label | number}
 
 indexed_indirect_addresser = ${"("~address~","~"X"~")"}
 indirect_indexed_addresser = ${"("~address~")"~","~"Y"}
-indirect_addresser = ${"("~address~")"}
-direct_addresser = ${"#"~address}
-indexed_addresser = ${address~","~("X" | "Y")}
+indirect_addresser = ${"("~(label | long_literal)~")"}
+immediate_addresser = ${"#"~(short_literal)}
+indexed_addresser = ${address~(",X" | ",Y")}
 
 address_code = _{
-    direct_addresser           |
+    immediate_addresser        | // done
     indexed_indirect_addresser |
     indirect_indexed_addresser |
-    indirect_addresser         |
-    indexed_addresser          |
+    indirect_addresser         | // done
+    indexed_addresser          | // done
     address
 }
 
