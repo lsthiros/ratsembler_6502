@@ -3,11 +3,11 @@ WHITESPACE = _{" " | "\t" | "\n"}
 short_literal = ${"$"~ASCII_HEX_DIGIT{2}}
 long_literal = ${"$"~ASCII_HEX_DIGIT{4}}
 number = _{long_literal | short_literal}
-instruction = {
-    ^"LDA" | ^"LDX" | ^"LDY" | ^"STA" | ^"STX" | ^"STY" | ^"ADC" | ^"SBC" | ^"INC" | ^"INX" | ^"INY" | ^"DEC" | ^"DEX" | ^"DEY" |
+instruction = ${
+    (^"LDA" | ^"LDX" | ^"LDY" | ^"STA" | ^"STX" | ^"STY" | ^"ADC" | ^"SBC" | ^"INC" | ^"INX" | ^"INY" | ^"DEC" | ^"DEX" | ^"DEY" |
     ^"AND" | ^"ORA" | ^"EOR" | ^"JMP" | ^"BCC" | ^"BCS" | ^"BEQ" | ^"BNE" | ^"BMI" | ^"BPL" | ^"BVS" | ^"BVC" | ^"CMP" | ^"CPX" |
     ^"CPY" | ^"BIT" | ^"ASL" | ^"LSR" | ^"ROL" | ^"ROR" | ^"TSX" | ^"TXS" | ^"PHA" | ^"PHP" | ^"PLA" | ^"PLP" | ^"JSR" | ^"RTS" |
-    ^"RTI" | ^"CLC" | ^"CLD" | ^"CLI" | ^"CLV" | ^"SEC" | ^"SED" | ^"SEI" | ^"NOP" | ^"BRK"
+    ^"RTI" | ^"CLC" | ^"CLD" | ^"CLI" | ^"CLV" | ^"SEC" | ^"SED" | ^"SEI" | ^"NOP" | ^"BRK") ~ &(WHITESPACE | EOI)
 }
 
 label = @{!instruction~(ASCII_ALPHA~(ASCII_ALPHANUMERIC | "_")*)}
