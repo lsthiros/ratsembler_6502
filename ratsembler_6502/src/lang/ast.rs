@@ -178,40 +178,36 @@ fn parse_expression(expression: Pair<super::parser::Rule>) -> (Vec<String>, Expr
                         u8::from_str_radix(&address.as_str()[1..], 16).unwrap(),
                     ))
                 }
-                Rule::short_literal => {
-                    match operation {
-                        InstructionCode::BCC
-                        | InstructionCode::BCS
-                        | InstructionCode::BEQ
-                        | InstructionCode::BMI
-                        | InstructionCode::BNE
-                        | InstructionCode::BPL
-                        | InstructionCode::BVC
-                        | InstructionCode::BVS => AddressValue::Relative(ShortOperand::Numeric(
-                            u8::from_str_radix(&address_value.as_str()[1..], 16).unwrap(),
-                        )),
-                        _ => AddressValue::ZeroPage(ShortOperand::Numeric(
-                            u8::from_str_radix(&address_value.as_str()[1..], 16).unwrap(),
-                        )),
-                    }
+                Rule::short_literal => match operation {
+                    InstructionCode::BCC
+                    | InstructionCode::BCS
+                    | InstructionCode::BEQ
+                    | InstructionCode::BMI
+                    | InstructionCode::BNE
+                    | InstructionCode::BPL
+                    | InstructionCode::BVC
+                    | InstructionCode::BVS => AddressValue::Relative(ShortOperand::Numeric(
+                        u8::from_str_radix(&address_value.as_str()[1..], 16).unwrap(),
+                    )),
+                    _ => AddressValue::ZeroPage(ShortOperand::Numeric(
+                        u8::from_str_radix(&address_value.as_str()[1..], 16).unwrap(),
+                    )),
                 },
                 Rule::long_literal => AddressValue::Absolute(LongOperand::Numeric(
                     u16::from_str_radix(&address_value.as_str()[1..], 16).unwrap(),
                 )),
-                Rule::label => {
-                    match operation {
-                        InstructionCode::BCC
-                        | InstructionCode::BCS
-                        | InstructionCode::BEQ
-                        | InstructionCode::BMI
-                        | InstructionCode::BNE
-                        | InstructionCode::BPL
-                        | InstructionCode::BVC
-                        | InstructionCode::BVS => AddressValue::Relative(ShortOperand::Label(
-                            address_value.as_str().into(),
-                        )),
-                        _ => AddressValue::Absolute(LongOperand::Label(address_value.as_str().into())),
+                Rule::label => match operation {
+                    InstructionCode::BCC
+                    | InstructionCode::BCS
+                    | InstructionCode::BEQ
+                    | InstructionCode::BMI
+                    | InstructionCode::BNE
+                    | InstructionCode::BPL
+                    | InstructionCode::BVC
+                    | InstructionCode::BVS => {
+                        AddressValue::Relative(ShortOperand::Label(address_value.as_str().into()))
                     }
+                    _ => AddressValue::Absolute(LongOperand::Label(address_value.as_str().into())),
                 },
                 _ => {
                     unreachable!()
