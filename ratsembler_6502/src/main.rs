@@ -7,9 +7,9 @@ use std::io::{self};
 #[macro_use]
 extern crate lazy_static;
 
+use lang::ast::Program;
 use lang::parser::Assembler6502Parser;
 use lang::parser::Rule;
-use lang::ast::Program;
 
 use pest::Parser;
 

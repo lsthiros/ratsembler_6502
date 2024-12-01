@@ -45,8 +45,12 @@ mod tests {
     #[test]
     fn test_parse_two_operand_free_instructions() {
         let parser_result = Assembler6502Parser::parse(Rule::program, "INX\nDEX\n");
-        assert!(parser_result.is_ok(), "Expected successful parse, got {:?}", parser_result);
-        let mut program_pairs= parser_result.unwrap().next().unwrap().into_inner();
+        assert!(
+            parser_result.is_ok(),
+            "Expected successful parse, got {:?}",
+            parser_result
+        );
+        let mut program_pairs = parser_result.unwrap().next().unwrap().into_inner();
         let first_instruction = program_pairs.next().unwrap();
         assert_eq!(first_instruction.as_rule(), Rule::expression);
         let second_instruction = program_pairs.next().unwrap();
