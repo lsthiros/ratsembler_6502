@@ -1,15 +1,9 @@
-mod elf;
-mod lang;
-
 use std::fs::read_to_string;
 use std::io::{self};
 
-#[macro_use]
-extern crate lazy_static;
-
-use lang::ast::Program;
-use lang::parser::Assembler6502Parser;
-use lang::parser::Rule;
+use ratsembler_6502::lang::ast::Program;
+use ratsembler_6502::lang::parser::Assembler6502Parser;
+use ratsembler_6502::lang::parser::Rule;
 
 use pest::Parser;
 

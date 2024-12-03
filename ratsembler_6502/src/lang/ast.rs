@@ -115,8 +115,8 @@ impl AddressValue {
 
 impl LongOperand {
     pub fn from_indirect_addresser(addresser: Pair<super::parser::Rule>) -> LongOperand {
+        assert_eq!(addresser.as_rule(), super::parser::Rule::indirect_addresser);
         let mut inner_pairs = addresser.into_inner();
-        let _ = inner_pairs.next().unwrap(); // Skip the opening parenthesis
         let address: Pair<Rule> = inner_pairs.next().unwrap();
         match address.as_rule() {
             Rule::label => LongOperand::Label(address.as_str().into()),
