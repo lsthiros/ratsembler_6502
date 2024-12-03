@@ -3,8 +3,8 @@ NOP
 
 two:
 three:
-NOP (bepis,X)
-NOP (bepis),Y
+NOP ($23,X)
+NOP ($23),Y
 NOP
 
 four:

@@ -57,6 +57,5 @@ mod tests {
         assert_eq!(second_instruction.as_rule(), Rule::expression);
         let eoi = program_pairs.next().unwrap();
         assert_eq!(eoi.as_rule(), Rule::EOI);
-        // validate that the program pair has two "expression" children
     }
 }

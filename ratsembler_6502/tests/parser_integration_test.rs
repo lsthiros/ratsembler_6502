@@ -1,17 +1,28 @@
-use std::fs::read_to_string;
-use std::io::{self};
+use pest::Parser;
 
 use ratsembler_6502::lang::ast::Program;
 use ratsembler_6502::lang::parser::Assembler6502Parser;
 use ratsembler_6502::lang::parser::Rule;
 
-use pest::Parser;
+#[test]
+fn test_parser_list() {
+    let input = r#"
+    one:
+    NOP
 
-fn main() -> io::Result<()> {
-    // read_to_string a file thats argument 1 on the command line
-    println!("Parsiing file: {}", std::env::args().nth(1).unwrap());
-    let unparsed = read_to_string(std::env::args().nth(1).unwrap())?;
-    let parsed = Assembler6502Parser::parse(Rule::program, &unparsed);
+    two:
+    three:
+    NOP ($23,X)
+    NOP ($23),Y
+    NOP
+
+    four:
+    NOP
+    NOP (hello)
+    NOP
+    "#;
+
+    let parsed = Assembler6502Parser::parse(Rule::program, input);
     match parsed {
         Ok(mut pairs) => {
             let program_pairs = pairs.next().unwrap();
@@ -22,6 +33,4 @@ fn main() -> io::Result<()> {
             eprintln!("Error parsing file: {}", e);
         }
     }
-
-    return Ok(());
 }
