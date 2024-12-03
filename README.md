@@ -35,12 +35,49 @@ I will be using "pest" as the parser because thats the library I found
 first. I prefer the EBNF-like syntax of flex + bison a good deal more,
 but I can't see anything wrong with learning PEG.
 
-#### The Parsing Process
+#### A Parser Example
 
+A very basic program might look like this:
 
-### The Emitter
+```
+JSR init
+BRK
 
-### And Some Silly Little Notes
-If I recall correctly, Pratt parsers are particularly good at handling infix
-operations and the complexity of Left Recursive grammar rules. I don't think
-my assembler language suffers from this.
+init:
+LDX #$00
+RTS
+```
+
+The AST might look something like this.
+
+```
+JSR
+ |  \
+init \
+     BRK
+       \
+        \
+         LDX
+        / |  \
+       / #$00 \
+    init:     RTS
+```
+
+The parser should be able to transform this into a list of instructions and a
+list of the labels with their positions like so:
+
+Instructions:
+1. JSR
+  * Mode: Absolute
+    * Label: "init"
+2. BRK
+  * Mode: Implied
+3. LDX
+  * Mode: Immediate
+    * Value: 0x00
+4. RTS
+  * Mode Immediate
+
+Labels:
+1. init
+  * Location: 0x04

@@ -33,3 +33,6 @@ lda #$04
 sta $11
 sta $13
 sta $15
+
+catch:
+  JMP catch

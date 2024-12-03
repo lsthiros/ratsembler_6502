@@ -1,28 +1,38 @@
 WHITESPACE = _{" " | "\t" | "\n"}
 
-short_literal = @{"$"~ASCII_HEX_DIGIT{2}}
-long_literal = @{"$"~ASCII_HEX_DIGIT{4}}
-number = {long_literal | short_literal}
-instruction = {
-    ^"LDA" | ^"LDX" | ^"LDY" | ^"STA" | ^"STX" | ^"STY" | ^"ADC" | ^"SBC" | ^"INC" | ^"INX" | ^"INY" | ^"DEC" | ^"DEX" | ^"DEY" |
+short_literal = ${"$"~ASCII_HEX_DIGIT{2}}
+long_literal = ${"$"~ASCII_HEX_DIGIT{4}}
+number = _{long_literal | short_literal}
+instruction = ${
+    (^"LDA" | ^"LDX" | ^"LDY" | ^"STA" | ^"STX" | ^"STY" | ^"ADC" | ^"SBC" | ^"INC" | ^"INX" | ^"INY" | ^"DEC" | ^"DEX" | ^"DEY" |
     ^"AND" | ^"ORA" | ^"EOR" | ^"JMP" | ^"BCC" | ^"BCS" | ^"BEQ" | ^"BNE" | ^"BMI" | ^"BPL" | ^"BVS" | ^"BVC" | ^"CMP" | ^"CPX" |
     ^"CPY" | ^"BIT" | ^"ASL" | ^"LSR" | ^"ROL" | ^"ROR" | ^"TSX" | ^"TXS" | ^"PHA" | ^"PHP" | ^"PLA" | ^"PLP" | ^"JSR" | ^"RTS" |
-    ^"RTI" | ^"CLC" | ^"CLD" | ^"CLI" | ^"CLV" | ^"SEC" | ^"SED" | ^"SEI" | ^"NOP" | ^"BRK"
+    ^"RTI" | ^"CLC" | ^"CLD" | ^"CLI" | ^"CLV" | ^"SEC" | ^"SED" | ^"SEI" | ^"NOP" | ^"BRK") ~ &(WHITESPACE | EOI)
 }
-label = @{ASCII_ALPHA~(ASCII_ALPHANUMERIC | "_")*}
+
+label = @{!instruction~(ASCII_ALPHA~(ASCII_ALPHANUMERIC | "_")*)}
 label_dec = ${label~":"}
-address = {label | number}
+address = _{label | number}
 
-indexed_indirect_addresser = {"("~address~","~"X"~")"}
-indirect_indexed_addresser = {"("~address~")"~","~"Y"}
-inderect_addresser = {"("~address~")"}
-address_code = ${
-    ("#"~address)                |
-    (indexed_indirect_addresser) |
-    (indirect_indexed_addresser) |
-    (inderect_addresser)         |
-    (address~","~("X" | "Y"))    |
-    (address)
+indexed_indirect_addresser = ${"("~short_literal~","~"X"~")"}
+indirect_indexed_addresser = ${"("~short_literal~")"~","~"Y"}
+indirect_addresser = ${"("~(label | long_literal)~")"}
+immediate_addresser = ${"#"~(short_literal)}
+x_indexed_addresser = ${",X"}
+y_indexed_addresser = ${",Y"}
+indexed_addresser = ${address~(x_indexed_addresser | y_indexed_addresser)}
+
+address_code = _{
+    immediate_addresser        |
+    indexed_indirect_addresser |
+    indirect_indexed_addresser |
+    indirect_addresser         |
+    indexed_addresser          |
+    address
 }
 
-program = {SOI~(label_dec*~(instruction~(!instruction~!label_dec~address_code)?))*~EOI}
+operation = _{instruction~(!label_dec~address_code)?}
+labeled_operation = _{label_dec+~operation}
+expression = {operation | labeled_operation}
+
+program = {SOI~(expression)*~EOI}
