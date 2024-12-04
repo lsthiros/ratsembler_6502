@@ -7,7 +7,9 @@ use super::parser::Rule;
 use pest::iterators::Pair;
 use pest::iterators::Pairs;
 
+use std::rc::Rc;
 use std::vec::Vec;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ShortOperand {
@@ -49,12 +51,12 @@ pub struct Expression {
 
 #[derive(Debug)]
 pub struct Program {
-    expressions: Vec<Expression>,
-    labels: Vec<String>,
+    expressions: Vec<Rc<Expression>>,
+    labels: HashMap<String, (usize, Rc<Expression>)>,
 }
 
 impl AddressValue {
-    pub fn to_indexer(self) -> AddressModeIndexer {
+    pub fn to_indexer(&self) -> AddressModeIndexer {
         match self {
             AddressValue::Accumulator => AddressModeIndexer::ACCUMULATOR,
             AddressValue::Implied => AddressModeIndexer::IMPLIED,
@@ -70,6 +72,24 @@ impl AddressValue {
             AddressValue::ZeroPageY(_) => AddressModeIndexer::ZP_Y,
             AddressValue::IndexedIndirect(_) => AddressModeIndexer::INDEX_IND,
             AddressValue::IndirectIndexed(_) => AddressModeIndexer::IND_INDEX,
+        }
+    }
+
+    pub fn get_size(&self) -> usize {
+        match self {
+            AddressValue::Accumulator => 1,
+            AddressValue::Implied => 1,
+            AddressValue::Immediate(_) => 2,
+            AddressValue::Absolute(_) => 3,
+            AddressValue::ZeroPage(_) => 2,
+            AddressValue::Relative(_) => 2,
+            AddressValue::AbsoluteIndirect(_) => 3,
+            AddressValue::AbsoluteX(_) => 3,
+            AddressValue::AbsoluteY(_) => 3,
+            AddressValue::ZeroPageX(_) => 2,
+            AddressValue::ZeroPageY(_) => 2,
+            AddressValue::IndexedIndirect(_) => 2,
+            AddressValue::IndirectIndexed(_) => 2,
         }
     }
 
@@ -239,21 +259,26 @@ fn parse_expression(expression: Pair<super::parser::Rule>) -> (Vec<String>, Expr
 
 impl Program {
     pub fn from_pairs(pairs: Pairs<Rule>) -> Program {
-        let mut expressions: Vec<Expression> = Vec::new();
-        let mut labels: Vec<String> = Vec::new();
+        let mut expressions: Vec<Rc<Expression>> = Vec::new();
+        let mut labels: HashMap<String, (usize, Rc<Expression>)> = HashMap::new();
+        let mut cursor: usize = 0;
 
         for pair in pairs {
             match pair.as_rule() {
                 Rule::expression => {
                     let (new_labels, new_expression) = parse_expression(pair);
-                    labels.extend(new_labels);
-                    expressions.push(new_expression);
+                    let reference_counted_expression = Rc::new(new_expression);
+                    expressions.push(reference_counted_expression.clone());
+                    for label in new_labels {
+                        labels.insert(label, (cursor, reference_counted_expression.clone()));
+                    }
+                    cursor += reference_counted_expression.operand.get_size();
                 }
                 Rule::EOI => {
                     break;
                 }
                 _ => {
-                    unreachable!("Got unexpected rule: {:?}", pair.as_rule());
+                    panic!("Got unexpected rule: {:?}", pair.as_rule());
                 }
             }
         }
