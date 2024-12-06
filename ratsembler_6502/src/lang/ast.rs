@@ -1,6 +1,7 @@
 use super::instruction::AddressModeIndexer;
 use super::instruction::InstructionCode;
 use super::instruction::INSTRUCTION_STR_MAP;
+use super::instruction::INSTRUCTION_MAP;
 
 use super::parser::Rule;
 
@@ -49,10 +50,11 @@ pub struct Expression {
     operand: AddressValue,
 }
 
+
 #[derive(Debug)]
 pub struct Program {
-    expressions: Vec<Rc<Expression>>,
-    labels: HashMap<String, (usize, Rc<Expression>)>,
+    pub expressions: Vec<Rc<Expression>>,
+    pub labels: HashMap<String, (usize, Rc<Expression>)>,
 }
 
 impl AddressValue {
@@ -130,6 +132,13 @@ impl AddressValue {
                 unreachable!()
             }
         }
+    }
+}
+
+
+impl Expression {
+    pub fn get_code(&self) -> &u8 {
+        INSTRUCTION_MAP.get(&(self.operator, self.operand.to_indexer())).unwrap()
     }
 }
 
@@ -287,5 +296,9 @@ impl Program {
             expressions: expressions,
             labels: labels,
         }
+    }
+
+    fn to_section(&self) -> Vec<u8> {
+        todo!();
     }
 }
