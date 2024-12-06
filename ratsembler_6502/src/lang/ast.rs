@@ -299,6 +299,15 @@ impl Program {
     }
 
     fn to_section(&self) -> Vec<u8> {
+        // We're going to need a few things to create a section:
+        // 1. the bytecode of the program
+        // 2. A list of symbols
+        //   - A symbol is a label that points to a specific address
+        //   - A symbol can also be a local or global value
+        // 3. A list of relocations
+        //   - A relocation is a reference to a symbol that needs to be resolved
+        //   - It contains an offset from the start of the section to the reference
+        //   - It also contains the "mode" of relocation, which might be absolute or relative
         todo!();
     }
 }
