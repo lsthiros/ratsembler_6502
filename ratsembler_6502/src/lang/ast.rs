@@ -5,6 +5,10 @@ use super::instruction::INSTRUCTION_MAP;
 
 use super::parser::Rule;
 
+use crate::elf::relocatable::Relocatable;
+use crate::elf::relocatable::Relocation;
+use crate::elf::relocatable::Symbol;
+
 use pest::iterators::Pair;
 use pest::iterators::Pairs;
 
@@ -49,6 +53,8 @@ pub struct Expression {
     operator: InstructionCode,
     operand: AddressValue,
 }
+
+
 
 
 #[derive(Debug)]
@@ -297,17 +303,60 @@ impl Program {
             labels: labels,
         }
     }
+}
 
-    fn to_section(&self) -> Vec<u8> {
-        // We're going to need a few things to create a section:
-        // 1. the bytecode of the program
-        // 2. A list of symbols
-        //   - A symbol is a label that points to a specific address
-        //   - A symbol can also be a local or global value
-        // 3. A list of relocations
-        //   - A relocation is a reference to a symbol that needs to be resolved
-        //   - It contains an offset from the start of the section to the reference
-        //   - It also contains the "mode" of relocation, which might be absolute or relative
-        todo!();
+impl Relocatable for Program {
+    fn get_raw_section(&self) -> Vec<u8> {
+        todo!()
+    }
+
+    fn get_relocations(&self) -> Vec<Relocation> {
+        let mut cursor: usize = 0;
+        self.expressions.iter().filter_map(|expression| {
+            let current_relocation = cursor + 1;
+            cursor += expression.operand.get_size();
+            match expression.operand {
+                AddressValue::Immediate(ShortOperand::Label(ref label)) => {
+                    Some(Relocation::Short(label.clone(), current_relocation as u16))
+                }
+                AddressValue::Absolute(LongOperand::Label(ref label)) => {
+                    Some(Relocation::Long(label.clone(), current_relocation as u16))
+                }
+                AddressValue::ZeroPage(ShortOperand::Label(ref label)) => {
+                    Some(Relocation::Short(label.clone(), current_relocation as u16))
+                }
+                AddressValue::Relative(ShortOperand::Label(ref label)) => {
+                    Some(Relocation::Relative(label.clone(), current_relocation as u16))
+                }
+                AddressValue::AbsoluteIndirect(LongOperand::Label(ref label)) => {
+                    Some(Relocation::Absolute(label.clone(), current_relocation as u16))
+                }
+                AddressValue::AbsoluteX(LongOperand::Label(ref label)) => {
+                    Some(Relocation::Long(label.clone(), current_relocation as u16))
+                }
+                AddressValue::AbsoluteY(LongOperand::Label(ref label)) => {
+                    Some(Relocation::Long(label.clone(), current_relocation as u16))
+                }
+                AddressValue::ZeroPageX(ShortOperand::Label(ref label)) => {
+                    Some(Relocation::Short(label.clone(), current_relocation as u16))
+                }
+                AddressValue::ZeroPageY(ShortOperand::Label(ref label)) => {
+                    Some(Relocation::Short(label.clone(), current_relocation as u16))
+                }
+                AddressValue::IndexedIndirect(ShortOperand::Label(ref label)) => {
+                    Some(Relocation::Short(label.clone(), current_relocation as u16))
+                }
+                AddressValue::IndirectIndexed(ShortOperand::Label(ref label)) => {
+                    Some(Relocation::Short(label.clone(), current_relocation as u16))
+                }
+                _ => None,
+            }
+        }).collect()
+    }
+
+    fn get_symbols(&self) -> HashMap<String, Symbol> {
+        self.labels.iter().map(|(label, (cursor, _))| {
+            (label.clone(), Symbol::Location(*cursor))
+        }).collect()
     }
 }

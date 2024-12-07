@@ -28,3 +28,6 @@ Cargo.lock
 
 # asm files are sometimes placed here for testing. They shoudn't be picked up for now
 *.asm
+
+# Workspace files are not needed in the repo
+*.code-workspace
