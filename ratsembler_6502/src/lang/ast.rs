@@ -307,7 +307,12 @@ impl Program {
 
 impl Relocatable for Program {
     fn get_raw_section(&self) -> Vec<u8> {
-        todo!()
+        todo!("Finish implementing get_raw_section for Program");
+        self.expressions.iter().fold((Vec::<u8>::new(), 0), |(mut acc, cursor), expression| {
+            let code = expression.get_code();
+            acc.push(*code);
+            (acc, cursor + expression.operand.get_size())
+        }).0
     }
 
     fn get_relocations(&self) -> Vec<Relocation> {
@@ -316,38 +321,24 @@ impl Relocatable for Program {
             let current_relocation = cursor + 1;
             cursor += expression.operand.get_size();
             match expression.operand {
-                AddressValue::Immediate(ShortOperand::Label(ref label)) => {
+                AddressValue::Immediate(ShortOperand::Label(ref label)) |
+                AddressValue::ZeroPage(ShortOperand::Label(ref label)) |
+                AddressValue::ZeroPageX(ShortOperand::Label(ref label)) |
+                AddressValue::ZeroPageY(ShortOperand::Label(ref label)) |
+                AddressValue::IndexedIndirect(ShortOperand::Label(ref label)) |
+                AddressValue::IndirectIndexed(ShortOperand::Label(ref label)) => {
                     Some(Relocation::Short(label.clone(), current_relocation as u16))
                 }
-                AddressValue::Absolute(LongOperand::Label(ref label)) => {
+                AddressValue::Absolute(LongOperand::Label(ref label)) |
+                AddressValue::AbsoluteX(LongOperand::Label(ref label)) |
+                AddressValue::AbsoluteY(LongOperand::Label(ref label)) => {
                     Some(Relocation::Long(label.clone(), current_relocation as u16))
-                }
-                AddressValue::ZeroPage(ShortOperand::Label(ref label)) => {
-                    Some(Relocation::Short(label.clone(), current_relocation as u16))
                 }
                 AddressValue::Relative(ShortOperand::Label(ref label)) => {
                     Some(Relocation::Relative(label.clone(), current_relocation as u16))
                 }
                 AddressValue::AbsoluteIndirect(LongOperand::Label(ref label)) => {
                     Some(Relocation::Absolute(label.clone(), current_relocation as u16))
-                }
-                AddressValue::AbsoluteX(LongOperand::Label(ref label)) => {
-                    Some(Relocation::Long(label.clone(), current_relocation as u16))
-                }
-                AddressValue::AbsoluteY(LongOperand::Label(ref label)) => {
-                    Some(Relocation::Long(label.clone(), current_relocation as u16))
-                }
-                AddressValue::ZeroPageX(ShortOperand::Label(ref label)) => {
-                    Some(Relocation::Short(label.clone(), current_relocation as u16))
-                }
-                AddressValue::ZeroPageY(ShortOperand::Label(ref label)) => {
-                    Some(Relocation::Short(label.clone(), current_relocation as u16))
-                }
-                AddressValue::IndexedIndirect(ShortOperand::Label(ref label)) => {
-                    Some(Relocation::Short(label.clone(), current_relocation as u16))
-                }
-                AddressValue::IndirectIndexed(ShortOperand::Label(ref label)) => {
-                    Some(Relocation::Short(label.clone(), current_relocation as u16))
                 }
                 _ => None,
             }
