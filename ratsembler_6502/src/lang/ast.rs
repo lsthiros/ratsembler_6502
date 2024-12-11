@@ -1,7 +1,7 @@
 use super::instruction::AddressModeIndexer;
 use super::instruction::InstructionCode;
-use super::instruction::INSTRUCTION_STR_MAP;
 use super::instruction::INSTRUCTION_MAP;
+use super::instruction::INSTRUCTION_STR_MAP;
 
 use super::parser::Rule;
 
@@ -12,9 +12,9 @@ use crate::elf::relocatable::Symbol;
 use pest::iterators::Pair;
 use pest::iterators::Pairs;
 
+use std::collections::HashMap;
 use std::rc::Rc;
 use std::vec::Vec;
-use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ShortOperand {
@@ -53,9 +53,6 @@ pub struct Expression {
     operator: InstructionCode,
     operand: AddressValue,
 }
-
-
-
 
 #[derive(Debug)]
 pub struct Program {
@@ -141,10 +138,11 @@ impl AddressValue {
     }
 }
 
-
 impl Expression {
     pub fn get_code(&self) -> &u8 {
-        INSTRUCTION_MAP.get(&(self.operator, self.operand.to_indexer())).unwrap()
+        INSTRUCTION_MAP
+            .get(&(self.operator, self.operand.to_indexer()))
+            .unwrap()
     }
 }
 
@@ -307,47 +305,110 @@ impl Program {
 
 impl Relocatable for Program {
     fn get_raw_section(&self) -> Vec<u8> {
-        todo!("Finish implementing get_raw_section for Program");
-        self.expressions.iter().fold((Vec::<u8>::new(), 0), |(mut acc, cursor), expression| {
-            let code = expression.get_code();
-            acc.push(*code);
-            (acc, cursor + expression.operand.get_size())
-        }).0
+        self.expressions
+            .iter()
+            .fold((Vec::<u8>::new(), 0), |(mut acc, cursor), expression| {
+                let code: u8 = *expression.get_code();
+                acc.push(code);
+                match expression.operand {
+                    AddressValue::Immediate(ref op)
+                    | AddressValue::ZeroPage(ref op)
+                    | AddressValue::ZeroPageX(ref op)
+                    | AddressValue::ZeroPageY(ref op)
+                    | AddressValue::IndexedIndirect(ref op)
+                    | AddressValue::IndirectIndexed(ref op) => match op {
+                        ShortOperand::Numeric(value) => {
+                            acc.push(*value);
+                        }
+                        ShortOperand::Label(_) => {
+                            acc.push(0xFF);
+                        }
+                    },
+
+                    AddressValue::Absolute(ref long_op)
+                    | AddressValue::AbsoluteX(ref long_op)
+                    | AddressValue::AbsoluteY(ref long_op)
+                    | AddressValue::AbsoluteIndirect(ref long_op) => match long_op {
+                        LongOperand::Numeric(value) => {
+                            acc.push((value & 0xFF) as u8);
+                            acc.push((value >> 8) as u8);
+                        }
+                        LongOperand::Label(_) => {
+                            acc.push(0xFF);
+                            acc.push(0xFF);
+                        }
+                    },
+
+                    AddressValue::Relative(ref short_op) => match short_op {
+                        ShortOperand::Numeric(value) => {
+                            acc.push(*value);
+                        }
+                        ShortOperand::Label(label) => {
+                            // If the label is in the symbol table, calculate the offset
+                            // to the currect cursor and insert that value as a u8.
+                            // Otherwise, insert 0xFF.
+                            if let Some((label_cursor, _)) = self.labels.get(label) {
+                                let offset = *label_cursor as i16 - cursor as i16;
+                                acc.push(offset as u8);
+                            } else {
+                                acc.push(0xFF);
+                            }
+                        }
+                    }
+
+                    AddressValue::Accumulator | AddressValue::Implied => {}
+                }
+                (acc, cursor + expression.operand.get_size())
+            })
+            .0
     }
 
     fn get_relocations(&self) -> Vec<Relocation> {
-        let mut cursor: usize = 0;
-        self.expressions.iter().filter_map(|expression| {
-            let current_relocation = cursor + 1;
-            cursor += expression.operand.get_size();
-            match expression.operand {
-                AddressValue::Immediate(ShortOperand::Label(ref label)) |
-                AddressValue::ZeroPage(ShortOperand::Label(ref label)) |
-                AddressValue::ZeroPageX(ShortOperand::Label(ref label)) |
-                AddressValue::ZeroPageY(ShortOperand::Label(ref label)) |
-                AddressValue::IndexedIndirect(ShortOperand::Label(ref label)) |
-                AddressValue::IndirectIndexed(ShortOperand::Label(ref label)) => {
-                    Some(Relocation::Short(label.clone(), current_relocation as u16))
-                }
-                AddressValue::Absolute(LongOperand::Label(ref label)) |
-                AddressValue::AbsoluteX(LongOperand::Label(ref label)) |
-                AddressValue::AbsoluteY(LongOperand::Label(ref label)) => {
-                    Some(Relocation::Long(label.clone(), current_relocation as u16))
-                }
-                AddressValue::Relative(ShortOperand::Label(ref label)) => {
-                    Some(Relocation::Relative(label.clone(), current_relocation as u16))
-                }
-                AddressValue::AbsoluteIndirect(LongOperand::Label(ref label)) => {
-                    Some(Relocation::Absolute(label.clone(), current_relocation as u16))
-                }
-                _ => None,
-            }
-        }).collect()
+        self.expressions
+            .iter()
+            .fold(
+                (Vec::<Relocation>::new(), 0),
+                |(mut acc, cursor), expression| {
+                    let current_relocation = cursor + 1;
+                    let new_cursor = cursor + expression.operand.get_size();
+                    match expression.operand {
+                        AddressValue::Immediate(ShortOperand::Label(ref label))
+                        | AddressValue::ZeroPage(ShortOperand::Label(ref label))
+                        | AddressValue::ZeroPageX(ShortOperand::Label(ref label))
+                        | AddressValue::ZeroPageY(ShortOperand::Label(ref label))
+                        | AddressValue::IndexedIndirect(ShortOperand::Label(ref label))
+                        | AddressValue::IndirectIndexed(ShortOperand::Label(ref label)) => {
+                            acc.push(Relocation::Short(label.clone(), current_relocation as u16));
+                        }
+                        AddressValue::Absolute(LongOperand::Label(ref label))
+                        | AddressValue::AbsoluteX(LongOperand::Label(ref label))
+                        | AddressValue::AbsoluteY(LongOperand::Label(ref label)) => {
+                            acc.push(Relocation::Long(label.clone(), current_relocation as u16));
+                        }
+                        AddressValue::Relative(ShortOperand::Label(ref label)) => {
+                            acc.push(Relocation::Relative(
+                                label.clone(),
+                                current_relocation as u16,
+                            ));
+                        }
+                        AddressValue::AbsoluteIndirect(LongOperand::Label(ref label)) => {
+                            acc.push(Relocation::Absolute(
+                                label.clone(),
+                                current_relocation as u16,
+                            ));
+                        }
+                        _ => {}
+                    }
+                    (acc, new_cursor)
+                },
+            )
+            .0
     }
 
     fn get_symbols(&self) -> HashMap<String, Symbol> {
-        self.labels.iter().map(|(label, (cursor, _))| {
-            (label.clone(), Symbol::Location(*cursor))
-        }).collect()
+        self.labels
+            .iter()
+            .map(|(label, (cursor, _))| (label.clone(), Symbol::Location(*cursor)))
+            .collect()
     }
 }
