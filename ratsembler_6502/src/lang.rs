@@ -1,3 +1,4 @@
 pub mod ast;
-mod instruction;
+mod expression;
+pub mod instruction;
 pub mod parser;

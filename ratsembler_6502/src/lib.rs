@@ -1,4 +1,4 @@
-mod elf;
+pub mod elf;
 pub mod lang;
 
 #[macro_use]
