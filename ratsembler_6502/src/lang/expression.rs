@@ -153,7 +153,9 @@ impl Expression {
         self.operand.get_size()
     }
 
-    pub fn from_expression_pair(expression: Pair<super::parser::Rule>) -> (Vec<String>, Expression) {
+    pub fn from_expression_pair(
+        expression: Pair<super::parser::Rule>,
+    ) -> (Vec<String>, Expression) {
         assert_eq!(expression.as_rule(), super::parser::Rule::expression);
         println!("parsing expression {:?}", expression);
 
@@ -266,41 +268,113 @@ impl Expression {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::parser::Assembler6502Parser;
+    use super::*;
 
     #[test]
     fn test_to_indexer() {
-        assert_eq!(AddressValue::Accumulator.to_indexer(), AddressModeIndexer::ACCUMULATOR);
-        assert_eq!(AddressValue::Implied.to_indexer(), AddressModeIndexer::IMPLIED);
-        assert_eq!(AddressValue::Immediate(ShortOperand::Numeric(0)).to_indexer(), AddressModeIndexer::IMMEDIATE);
-        assert_eq!(AddressValue::Absolute(LongOperand::Numeric(0)).to_indexer(), AddressModeIndexer::ABSOLUTE);
-        assert_eq!(AddressValue::ZeroPage(ShortOperand::Numeric(0)).to_indexer(), AddressModeIndexer::ZERO_PAGE);
-        assert_eq!(AddressValue::Relative(ShortOperand::Numeric(0)).to_indexer(), AddressModeIndexer::RELATIVE);
-        assert_eq!(AddressValue::AbsoluteIndirect(LongOperand::Numeric(0)).to_indexer(), AddressModeIndexer::ABSOLUTE_INDIRECT);
-        assert_eq!(AddressValue::AbsoluteX(LongOperand::Numeric(0)).to_indexer(), AddressModeIndexer::ABS_X);
-        assert_eq!(AddressValue::AbsoluteY(LongOperand::Numeric(0)).to_indexer(), AddressModeIndexer::ABS_Y);
-        assert_eq!(AddressValue::ZeroPageX(ShortOperand::Numeric(0)).to_indexer(), AddressModeIndexer::ZP_X);
-        assert_eq!(AddressValue::ZeroPageY(ShortOperand::Numeric(0)).to_indexer(), AddressModeIndexer::ZP_Y);
-        assert_eq!(AddressValue::IndexedIndirect(ShortOperand::Numeric(0)).to_indexer(), AddressModeIndexer::INDEX_IND);
-        assert_eq!(AddressValue::IndirectIndexed(ShortOperand::Numeric(0)).to_indexer(), AddressModeIndexer::IND_INDEX);
+        assert_eq!(
+            AddressValue::Accumulator.to_indexer(),
+            AddressModeIndexer::ACCUMULATOR
+        );
+        assert_eq!(
+            AddressValue::Implied.to_indexer(),
+            AddressModeIndexer::IMPLIED
+        );
+        assert_eq!(
+            AddressValue::Immediate(ShortOperand::Numeric(0)).to_indexer(),
+            AddressModeIndexer::IMMEDIATE
+        );
+        assert_eq!(
+            AddressValue::Absolute(LongOperand::Numeric(0)).to_indexer(),
+            AddressModeIndexer::ABSOLUTE
+        );
+        assert_eq!(
+            AddressValue::ZeroPage(ShortOperand::Numeric(0)).to_indexer(),
+            AddressModeIndexer::ZERO_PAGE
+        );
+        assert_eq!(
+            AddressValue::Relative(ShortOperand::Numeric(0)).to_indexer(),
+            AddressModeIndexer::RELATIVE
+        );
+        assert_eq!(
+            AddressValue::AbsoluteIndirect(LongOperand::Numeric(0)).to_indexer(),
+            AddressModeIndexer::ABSOLUTE_INDIRECT
+        );
+        assert_eq!(
+            AddressValue::AbsoluteX(LongOperand::Numeric(0)).to_indexer(),
+            AddressModeIndexer::ABS_X
+        );
+        assert_eq!(
+            AddressValue::AbsoluteY(LongOperand::Numeric(0)).to_indexer(),
+            AddressModeIndexer::ABS_Y
+        );
+        assert_eq!(
+            AddressValue::ZeroPageX(ShortOperand::Numeric(0)).to_indexer(),
+            AddressModeIndexer::ZP_X
+        );
+        assert_eq!(
+            AddressValue::ZeroPageY(ShortOperand::Numeric(0)).to_indexer(),
+            AddressModeIndexer::ZP_Y
+        );
+        assert_eq!(
+            AddressValue::IndexedIndirect(ShortOperand::Numeric(0)).to_indexer(),
+            AddressModeIndexer::INDEX_IND
+        );
+        assert_eq!(
+            AddressValue::IndirectIndexed(ShortOperand::Numeric(0)).to_indexer(),
+            AddressModeIndexer::IND_INDEX
+        );
     }
 
     #[test]
     fn test_get_size() {
         assert_eq!(AddressValue::Accumulator.get_size(), 1);
         assert_eq!(AddressValue::Implied.get_size(), 1);
-        assert_eq!(AddressValue::Immediate(ShortOperand::Numeric(0)).get_size(), 2);
-        assert_eq!(AddressValue::Absolute(LongOperand::Numeric(0)).get_size(), 3);
-        assert_eq!(AddressValue::ZeroPage(ShortOperand::Numeric(0)).get_size(), 2);
-        assert_eq!(AddressValue::Relative(ShortOperand::Numeric(0)).get_size(), 2);
-        assert_eq!(AddressValue::AbsoluteIndirect(LongOperand::Numeric(0)).get_size(), 3);
-        assert_eq!(AddressValue::AbsoluteX(LongOperand::Numeric(0)).get_size(), 3);
-        assert_eq!(AddressValue::AbsoluteY(LongOperand::Numeric(0)).get_size(), 3);
-        assert_eq!(AddressValue::ZeroPageX(ShortOperand::Numeric(0)).get_size(), 2);
-        assert_eq!(AddressValue::ZeroPageY(ShortOperand::Numeric(0)).get_size(), 2);
-        assert_eq!(AddressValue::IndexedIndirect(ShortOperand::Numeric(0)).get_size(), 2);
-        assert_eq!(AddressValue::IndirectIndexed(ShortOperand::Numeric(0)).get_size(), 2);
+        assert_eq!(
+            AddressValue::Immediate(ShortOperand::Numeric(0)).get_size(),
+            2
+        );
+        assert_eq!(
+            AddressValue::Absolute(LongOperand::Numeric(0)).get_size(),
+            3
+        );
+        assert_eq!(
+            AddressValue::ZeroPage(ShortOperand::Numeric(0)).get_size(),
+            2
+        );
+        assert_eq!(
+            AddressValue::Relative(ShortOperand::Numeric(0)).get_size(),
+            2
+        );
+        assert_eq!(
+            AddressValue::AbsoluteIndirect(LongOperand::Numeric(0)).get_size(),
+            3
+        );
+        assert_eq!(
+            AddressValue::AbsoluteX(LongOperand::Numeric(0)).get_size(),
+            3
+        );
+        assert_eq!(
+            AddressValue::AbsoluteY(LongOperand::Numeric(0)).get_size(),
+            3
+        );
+        assert_eq!(
+            AddressValue::ZeroPageX(ShortOperand::Numeric(0)).get_size(),
+            2
+        );
+        assert_eq!(
+            AddressValue::ZeroPageY(ShortOperand::Numeric(0)).get_size(),
+            2
+        );
+        assert_eq!(
+            AddressValue::IndexedIndirect(ShortOperand::Numeric(0)).get_size(),
+            2
+        );
+        assert_eq!(
+            AddressValue::IndirectIndexed(ShortOperand::Numeric(0)).get_size(),
+            2
+        );
     }
 
     #[test]

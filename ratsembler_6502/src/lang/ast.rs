@@ -1,9 +1,8 @@
-
-use super::parser::Rule;
-use super::expression::Expression;
 use super::expression::AddressValue;
-use super::expression::ShortOperand;
+use super::expression::Expression;
 use super::expression::LongOperand;
+use super::expression::ShortOperand;
+use super::parser::Rule;
 
 use crate::elf::relocatable::Relocatable;
 use crate::elf::relocatable::Relocation;
@@ -15,13 +14,11 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::vec::Vec;
 
-
 #[derive(Debug)]
 pub struct Program {
     pub expressions: Vec<Rc<Expression>>,
     pub labels: HashMap<String, (usize, Rc<Expression>)>,
 }
-
 
 impl Program {
     pub fn from_pairs(pairs: Pairs<Rule>) -> Program {
@@ -107,7 +104,7 @@ impl Relocatable for Program {
                                 acc.push(0xFF);
                             }
                         }
-                    }
+                    },
 
                     AddressValue::Accumulator | AddressValue::Implied => {}
                 }
