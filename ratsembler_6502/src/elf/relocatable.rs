@@ -1,12 +1,14 @@
 use std::collections::HashMap;
 use std::vec::Vec;
 
+#[derive(Debug)]
 pub enum Symbol {
     Location(usize),
     ShortValue(u8),
     LongValue(u16),
 }
 
+#[derive(Debug)]
 pub enum Relocation {
     Absolute(String, u16),
     Relative(String, u16),

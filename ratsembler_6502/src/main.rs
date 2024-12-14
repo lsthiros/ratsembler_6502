@@ -5,6 +5,8 @@ use ratsembler_6502::lang::ast::Program;
 use ratsembler_6502::lang::parser::Assembler6502Parser;
 use ratsembler_6502::lang::parser::Rule;
 
+use ratsembler_6502::elf::relocatable::Relocatable;
+
 use pest::Parser;
 
 fn main() -> io::Result<()> {
@@ -17,6 +19,9 @@ fn main() -> io::Result<()> {
             let program_pairs = pairs.next().unwrap();
             let program = Program::from_pairs(program_pairs.into_inner());
             println!("{:?}", program);
+            println!("{:x?}", program.get_raw_section());
+            println!("{:?}", program.get_relocations());
+            println!("{:?}", program.get_symbols());
         }
         Err(e) => {
             eprintln!("Error parsing file: {}", e);
