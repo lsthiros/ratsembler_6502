@@ -28,5 +28,9 @@ fn main() -> io::Result<()> {
         }
     }
 
+    let output_file = std::env::args().nth(2).unwrap();
+    let mut file = std::fs::File::create(output_file)?;
+    ratsembler_6502::elf::writer::write_elf_header(&mut file)?;
+
     return Ok(());
 }

@@ -5,6 +5,9 @@ use std::mem;
 const EI_NIDENT: usize = 16;
 const EM_6502: u16 = 0x6502; // Hypothetical value for 6502 architecture
 
+// ELF Relocatable type signifier
+const ET_REL: u16 = 1;
+
 #[repr(C)]
 struct Elf32Ehdr {
     e_ident: [u8; EI_NIDENT],
@@ -36,11 +39,11 @@ impl Elf32Ehdr {
 
         Elf32Ehdr {
             e_ident,
-            e_type: 2, // ET_EXEC
+            e_type: ET_REL, // ET_REL
             e_machine: EM_6502,
             e_version: 1, // EV_CURRENT
-            e_entry: 0x08048000,
-            e_phoff: mem::size_of::<Elf32Ehdr>() as u32,
+            e_entry: 0,
+            e_phoff: 0,
             e_shoff: 0,
             e_flags: 0,
             e_ehsize: mem::size_of::<Elf32Ehdr>() as u16,
