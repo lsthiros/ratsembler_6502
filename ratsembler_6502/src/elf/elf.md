@@ -156,12 +156,92 @@ four different types that I made without properly documenting them at the time
 \(whoops\). I believe that they look something like this
 
 |code|type    |discription                                                   |
-+----+--------+--------------------------------------------------------------+
+|----|--------|--------------------------------------------------------------|
 |0x00|NO_TYPE |Undefined. Neither used nor supported                         |
 |0x01|SHORT   |Reserved                                                      |
 |0x02|LONG    |Reserved                                                      |
 |0x03|ABS     |An absolute address from a label                              |
 |0x04|RELATIVE|An offset from the current PC to labeled address e.g. branches|
+
+### Section Headers
+
+This portion is another contiguous array of section header structures that
+describe the aforementioned sections. I'm tired so here it is:
+
+```
+Section_Header: {
+    sh_name: u32,
+    sh_type: u32,
+    sh_flags: u32,
+    sh_addr: u32,
+    sh_offset: u32,
+    sh_size: u32,
+    sh_link: u32,
+    sh_info: u32,
+    sh_addralign: u32,
+    sh_entsize: u32
+}
+```
+
+`sh_name` specifies the name of the section as an index into the section header
+string table. The section containing the section header string table is
+specified in the ELF header.
+
+`sh_type` specifies the type of section being referred to. The relevant section
+types for this project are:
+| Name | Value | Description |
+| --- | --- | --- |
+|SHT_NULL | 0x0 | An unused section |
+|SHT_PROGBITS | 0x1 | A program |
+|SHT_SYMTAB | 0x2 | Symbol table |
+|SHT_STRTAB | 0x3 | String table |
+|SHT_RELA | 0x4 | Relocation-with-addend table |
+|SHT_REL | 0x9 | Relocation table |
+
+`sh_flags` gives further instructions on how the section will be treated in
+memory.
+
+| Name | Value |
+| --- | --- |
+| SHF_WRITE | 0x1 |
+| SHF_ALLOC | 0x2 |
+| SHF_EXECINSTR | 0x4 |
+| SHF_MASKPROC | 0xF0000000 |
+
+`SHF_WRITE` indicates that the section should be writeable. `SHF_ALLOC`
+indicates that the section should reside in process memory during execution.
+Some sections are intended for "control", and are not indended to be in memory.
+`SHF_EXECINSTR` indicates that a section should be executable. `SHF_MASKPROC`
+includes all bits that can be used for processor specific indications.
+
+`sh_info` and `sh_link` contain specific info for specific types of sections.
+For this assembler, only a subset of these relations are observed. A section
+of type `SHT_REL` or `SHT_RELA` will have `sh_link` point to its symbol table
+and `sh_info` point to the section that the relocation applies to.
+
+A section of type `SHT_SYMTAB` will use `sh_link` will point its associated
+string table. `SH_INFO` will contain a value one greater than the symbol table
+index of the last local symbol.
+
+#### The NULL section
+The first entry in the section table is always reserved for a null section. Its
+section header will look like this.
+
+| Field | Value |
+| --- | --- |
+| sh_name | 0x0 |
+| sh_type | SHT_NULL |
+| sh_flags | 0x0 |
+| sh_addr | 0x0 |
+| sh_offset | 0x0 |
+| sh_size | 0x0 |
+| sh_link | SHN_UNDEF |
+| sh_info | 0x0 |
+| sh_addralign | 0x0 |
+| sh_entsize | 0x0 |
+
+Per CMU's description, it is sufficient to set `sh_type` to `SHT_NULL` and
+leave the other fields as undefined.
 
 # Sources
 [CMU Material on ELF Files](https://web.archive.org/web/20241224203513/https://www.cs.cmu.edu/afs/cs/academic/class/15213-f00/docs/elf.pdf)
